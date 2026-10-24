@@ -73,7 +73,7 @@ export async function suggestPrompts(options: SuggestPromptsOptions): Promise<On
 		competitors: options.competitors ?? [],
 		count,
 	});
-	const raw = await runStructuredResearchPrompt(prompt, buildSchema(count));
+	const raw = await runStructuredResearchPrompt(prompt, buildSchema(count), { maxOutputTokens: 1024 });
 
 	const existing = new Set(options.existingPrompts.map(dedupeKey));
 	return normalizePrompts(

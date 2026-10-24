@@ -79,12 +79,16 @@ export function resolveResearchProvider(env: Record<string, string | undefined> 
  * heavy lifting (web search, structured outputs, retry) lives inside each
  * provider's `runStructuredResearch` impl — we just pick the provider.
  */
-export async function runStructuredResearchPrompt<T>(prompt: string, schema: z.ZodType<T>): Promise<T> {
+export async function runStructuredResearchPrompt<T>(
+	prompt: string,
+	schema: z.ZodType<T>,
+	options: { maxOutputTokens?: number } = {},
+): Promise<T> {
 	const provider = resolveResearchProvider();
 	if (!provider.runStructuredResearch) {
 		throw new Error(`Provider "${provider.id}" does not implement structured research`);
 	}
-	const result = await provider.runStructuredResearch({ prompt, schema });
+	const result = await provider.runStructuredResearch({ prompt, schema, ...options });
 	return result.object;
 }
 

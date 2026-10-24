@@ -31,6 +31,8 @@ export interface StructuredResearchOptions<T> {
 	 * supplied entirely in the prompt — no tools, no agent loop.
 	 */
 	webSearch?: boolean;
+	/** Maximum generated tokens for providers that support per-call output limits. */
+	maxOutputTokens?: number;
 }
 
 export interface StructuredResearchResult<T> {

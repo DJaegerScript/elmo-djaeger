@@ -1,0 +1,50 @@
+# Elmo web app build on Railway. Keep this aligned with docker/Dockerfile's
+# shared dependency and web runner stages; the worker has its own service build.
+FROM node:24-alpine AS base
+RUN corepack enable pnpm
+RUN apk add --no-cache curl
+
+FROM base AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/worker/package.json ./apps/worker/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/config/package.json ./packages/config/
+COPY packages/lib/package.json ./packages/lib/
+COPY packages/deployment/package.json ./packages/deployment/
+COPY packages/og/package.json ./packages/og/
+COPY packages/api-spec/package.json ./packages/api-spec/
+RUN pnpm install --frozen-lockfile
+
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/apps/worker/node_modules ./apps/worker/node_modules
+COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
+COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
+COPY --from=deps /app/packages/lib/node_modules ./packages/lib/node_modules
+COPY --from=deps /app/packages/deployment/node_modules ./packages/deployment/node_modules
+COPY --from=deps /app/packages/og/node_modules ./packages/og/node_modules
+COPY . .
+
+FROM builder AS web-build
+ARG VITE_APP_URL
+ENV VITE_APP_URL=${VITE_APP_URL}
+RUN pnpm --filter @workspace/web build
+
+FROM base AS web
+WORKDIR /app
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 elmo
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+COPY --from=web-build --chown=elmo:nodejs /app/apps/web/.output ./.output
+USER elmo
+EXPOSE 3000
+ENV PORT=3000
+ENV HOST="0.0.0.0"
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["node", ".output/server/index.mjs"]

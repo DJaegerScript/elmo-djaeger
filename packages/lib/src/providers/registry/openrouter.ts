@@ -63,6 +63,7 @@ export const openrouter: Provider = {
 		prompt,
 		schema,
 		webSearch = true,
+		maxOutputTokens = 2048,
 	}: StructuredResearchOptions<T>): Promise<StructuredResearchResult<T>> {
 		// Raw fetch (no AI SDK) so we can attach the OpenRouter `plugins` field
 		// — the AI SDK's OpenAI-compat path doesn't pass it through.
@@ -70,6 +71,7 @@ export const openrouter: Provider = {
 			model: DEFAULT_RESEARCH_MODEL,
 			messages: [{ role: "user", content: prompt }],
 			response_format: jsonSchemaResponseFormat(schema),
+			max_tokens: maxOutputTokens,
 		};
 		// GLM uses OpenRouter's Exa-backed web search rather than a native search
 		// implementation. Keep the model fixed to the requested OpenRouter route.
