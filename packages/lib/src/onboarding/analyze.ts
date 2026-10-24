@@ -205,7 +205,7 @@ export async function analyzeBrand(options: AnalyzeBrandOptions): Promise<Onboar
 	const start = Date.now();
 	console.log(`[onboarding] analyzeBrand start: ${options.website}`);
 	const ctx = await buildAnalysisContext(options);
-	const raw = await runStructuredResearchPrompt(ctx.prompt, ctx.schema);
+	const raw = await runStructuredResearchPrompt(ctx.prompt, ctx.schema, { maxOutputTokens: 2048, webSearch: false });
 	const result = normalizeAnalysisResult(raw, ctx);
 	console.log(
 		`[onboarding] analyzeBrand done: ${ctx.analysisUrl} in ${Date.now() - start}ms (tracking="${result.website}", brand="${result.brandName}", competitors=${result.competitors.length}, prompts=${result.suggestedPrompts.length})`,
@@ -283,7 +283,7 @@ function buildPrompt(args: {
 
 ${nameLine}
 ${scopeNote}${excerptBlock}
-Use web search to verify facts. Never invent information — return empty arrays when uncertain.
+Use the website excerpt above as your primary source, with existing knowledge as context. Never invent information — return empty arrays when uncertain.
 
 You MUST return the structured JSON object — even if you can find nothing about this brand. In that case set brandName to the likely name above and return empty arrays for every other field. Refusing to produce JSON, or replying with prose explaining what you don't know, is a failure mode; an object with mostly-empty arrays is the correct answer when information is genuinely unavailable.${skipNotes.length > 0 ? `\n\n${skipNotes.join(" ")}` : ""}`;
 }

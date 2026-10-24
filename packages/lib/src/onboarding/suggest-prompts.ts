@@ -54,7 +54,7 @@ function buildPrompt(args: {
 
 	return `Suggest ${args.count} more AI tracking prompts for ${args.brandName} (${args.analysisUrl}).
 ${excerptBlock}${competitorsLine}${tagsLine}${existingBlock}
-Each prompt is something a real person would type into ChatGPT where an answer could plausibly mention ${args.brandName} or its competitors. Use web search to understand what the brand sells and who buys it, then cover angles the existing prompts miss: other product categories, audiences, use cases, price points, regions, or buying stages.`;
+Each prompt is something a real person would type into ChatGPT where an answer could plausibly mention ${args.brandName} or its competitors. Use the supplied website excerpt and existing prompt list to infer what the brand sells and who buys it, then cover angles the existing prompts miss: other product categories, audiences, use cases, price points, regions, or buying stages.`;
 }
 
 export async function suggestPrompts(options: SuggestPromptsOptions): Promise<OnboardingPrompt[]> {
@@ -73,7 +73,7 @@ export async function suggestPrompts(options: SuggestPromptsOptions): Promise<On
 		competitors: options.competitors ?? [],
 		count,
 	});
-	const raw = await runStructuredResearchPrompt(prompt, buildSchema(count), { maxOutputTokens: 1024 });
+	const raw = await runStructuredResearchPrompt(prompt, buildSchema(count), { maxOutputTokens: 1024, webSearch: false });
 
 	const existing = new Set(options.existingPrompts.map(dedupeKey));
 	return normalizePrompts(

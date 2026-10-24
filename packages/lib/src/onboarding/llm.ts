@@ -82,7 +82,7 @@ export function resolveResearchProvider(env: Record<string, string | undefined> 
 export async function runStructuredResearchPrompt<T>(
 	prompt: string,
 	schema: z.ZodType<T>,
-	options: { maxOutputTokens?: number } = {},
+	options: { maxOutputTokens?: number; webSearch?: boolean } = {},
 ): Promise<T> {
 	const provider = resolveResearchProvider();
 	if (!provider.runStructuredResearch) {
