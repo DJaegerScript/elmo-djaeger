@@ -12,9 +12,7 @@ import { jsonSchemaResponseFormat, parseSchemaJson } from "./ai-sdk";
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const OPENROUTER_API_URL = `${OPENROUTER_BASE_URL}/chat/completions`;
-// Must be a family with OpenRouter's *native* web-search plugin (vs the Exa
-// fallback); per the docs that's OpenAI, Anthropic, Perplexity, and xAI.
-const DEFAULT_RESEARCH_MODEL = "anthropic/claude-sonnet-5.5";
+const DEFAULT_RESEARCH_MODEL = "z-ai/glm-5.3-flash";
 
 function openrouterHeaders(): Record<string, string> {
 	return {
@@ -73,9 +71,9 @@ export const openrouter: Provider = {
 			messages: [{ role: "user", content: prompt }],
 			response_format: jsonSchemaResponseFormat(schema),
 		};
-		// `engine: "native"` runs the underlying provider's real web-search tool
-		// (e.g. Anthropic's web_search_20250305) instead of the Exa fallback.
-		if (webSearch) body.plugins = [{ id: "web", engine: "native" }];
+		// GLM uses OpenRouter's Exa-backed web search rather than a native search
+		// implementation. Keep the model fixed to the requested OpenRouter route.
+		if (webSearch) body.plugins = [{ id: "web", engine: "exa" }];
 		const res = await fetch(OPENROUTER_API_URL, {
 			method: "POST",
 			headers: openrouterHeaders(),
